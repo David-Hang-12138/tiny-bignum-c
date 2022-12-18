@@ -9,7 +9,7 @@ all:
 	@$(CC) $(CFLAGS) bn.c ./tests/load_cmp.c    -o ./build/test_load_cmp
 	@$(CC) $(CFLAGS) bn.c ./tests/factorial.c   -o ./build/test_factorial
 	@$(CC) $(CFLAGS) bn.c ./tests/randomized.c  -o ./build/test_random
-	@#$(CC) $(CFLAGS) bn.c ./tests/rsa.c         -o ./build/test_rsa
+	@$(CC) $(CFLAGS) bn.c ./tests/rsa.c         -o ./build/test_rsa
 
 
 test:

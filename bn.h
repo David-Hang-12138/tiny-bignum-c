@@ -30,7 +30,7 @@ There may well be room for performance-optimizations and improvements.
 #endif
 
 /* Size of big-numbers in bytes */
-#define BN_ARRAY_SIZE    (128 / WORD_SIZE)
+#define BN_ARRAY_SIZE    (512 / WORD_SIZE)
 
 
 /* Here comes the compile-time specialization for how large the underlying array size should be. */
@@ -60,8 +60,8 @@ There may well be room for performance-optimizations and improvements.
   #define DTYPE                    uint32_t
   #define DTYPE_TMP                uint64_t
   #define DTYPE_MSB                ((DTYPE_TMP)(0x80000000))
-  #define SPRINTF_FORMAT_STR       "%.08x"
-  #define SSCANF_FORMAT_STR        "%8x"
+  #define SPRINTF_FORMAT_STR       "%.08X"
+  #define SSCANF_FORMAT_STR        "%8X"
   #define MAX_VAL                  ((DTYPE_TMP)0xFFFFFFFF)
 #endif
 #ifndef DTYPE

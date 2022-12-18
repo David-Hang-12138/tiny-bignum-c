@@ -69,7 +69,7 @@ void pow_mod_faster(struct bn* a, struct bn* b, struct bn* n, struct bn* res)
   }
 }
 
-static void test_rsa_1(void)
+void test_rsa_1(void)
 {
   /* Testing with very small and simple terms */
   char buf[8192];
@@ -231,35 +231,96 @@ void test_rsa_3(void)
   printf("\n");
 }
 
+void ExtEuclid(struct bn *a, struct bn *b, struct bn *y)
+{
+  struct bn x, u, v, gcd, m, n, q, r, tmp;
+  bignum_init(&x);
+  bignum_init(&u);
+  bignum_init(&v);
+  bignum_init(&gcd);
+  bignum_init(&m);
+  bignum_init(&n);
+  bignum_init(&q);
+  bignum_init(&r);
+  bignum_init(&tmp);
 
-
+  bignum_from_int(&x, 0);
+  bignum_from_int(y, 1);
+  bignum_from_int(&u, 1);
+  bignum_from_int(&v, 0);
+  bignum_assign(&gcd, b);
+  while (!bignum_is_zero(a))
+  {
+    bignum_div(&gcd, a, &q);  // q = gcd / a;
+    bignum_mod(&gcd, a, &r);  // r = gcd % a;
+    bignum_mul(&u, &q, &tmp); // tmp = u * q
+    bignum_sub(&x, &tmp, &m); // m = x - u * q;
+    bignum_mul(&v, &q, &tmp); // tmp = v * q;
+    bignum_sub(y, &tmp, &n);  // n = y - v * q;
+    bignum_assign(&gcd, a);   // gcd = a;
+    bignum_assign(a, &r);     // a = r;
+    bignum_assign(&x, &u);    // x = u;
+    bignum_assign(y, &v);     // y = v;
+    bignum_assign(&u, &m);    // u = m;
+    bignum_assign(&v, &n);    // v = n;
+  }
+}
 
 static void test_rsa1024(void)
 {
-  char public[]  = "F528780A0AA649F0C08D539789175E9972F396AD9E9B6FD00865A7E76F926DB7B150591413C225EBACBA88FFE506BA70114328542C39C7FC357399E3ED120BE0F5827C2E8AD257213D04FCF7479F498C060F67B916CA349821F4548EFDFBDCBF38B747BC60DB197E47A3C586AC1F06BC6E61CAD49A873A463C4CD1BD86A7E2A1";
+  char public[] = "F528780A0AA649F0C08D539789175E9972F396AD9E9B6FD00865A7E76F926DB7B150591413C225EBACBA88FFE506BA70114328542C39C7FC357399E3ED120BE0F5827C2E8AD257213D04FCF7479F498C060F67B916CA349821F4548EFDFBDCBF38B747BC60DB197E47A3C586AC1F06BC6E61CAD49A873A463C4CD1BD86A7E2A1";
   char private[] = "DCA98811D9722A87FF7D4F972AB2FD8F1CA83928BE585FA84828A5C5A9A17612E6F24F4FF2F9135C85ACE6BF26A02C3F2D44F8121000BD6C5E69F5AA3F839AAD056CBC739A1A04D4BCC61EC75265360FB86266BE5B5CEE5C1521085982860628DAFE8356725E8835FA53D2F0037DFCCF5F1A2CD8D9D8751716851731A2229603";
   char buf[8192];
 
+  struct bn p; /* prime number */
+  struct bn q; /* prime number */
   struct bn n; /* public  key */
+  struct bn t; /* phi  */
   struct bn d; /* private key */
   struct bn e; /* public exponent */
   struct bn m; /* clear text message */
   struct bn c; /* cipher text */
+  struct bn tmp1, tmp2, tmp3;
 
-  //int len_pub = strlen(public);
-  //int len_prv = strlen(private);
+  // int len_pub = strlen(public);
+  // int len_prv = strlen(private);
 
   int x = 54321;
 
+  bignum_init(&p);
+  bignum_init(&q);
   bignum_init(&n);
+  bignum_init(&t);
   bignum_init(&d);
   bignum_init(&e);
   bignum_init(&m);
   bignum_init(&c);
+  bignum_init(&tmp1);
+  bignum_init(&tmp2);
+  bignum_init(&tmp3);
 
-  bignum_from_string(&n, public,  256);
-  bignum_from_string(&d, private, 256);
+  bignum_from_string(&p, public, 256);
+  bignum_from_string(&q, private, 256);
+
   bignum_from_int(&e, 65537);
+
+  // n = p * q
+  bignum_mul(&p, &q, &n);
+
+  // t = (p - 1) * (q - 1)
+  bignum_assign(&tmp1, &p);
+  bignum_dec(&tmp1);
+  bignum_assign(&tmp2, &q);
+  bignum_dec(&tmp2);
+  bignum_mul(&tmp1, &tmp2, &t);
+
+  ExtEuclid(&t, &e, &d);
+  while (bignum_cmp(&d, &tmp3) == SMALLER)
+  {
+    bignum_add(&d, &t, &tmp1);
+    bignum_assign(&d, &tmp1);
+  }
+
   bignum_init(&m);
   bignum_init(&c);
 
@@ -294,17 +355,14 @@ static void test_rsa1024(void)
   printf("m = %s \n", buf);
 }
 
-
 int main()
 {
   printf("\n");
   printf("Testing RSA encryption implemented with bignum. \n");
 
-
-
-  test_rsa_1();
-  test_rsa_2();
-  test_rsa_3();
+  // test_rsa_1();
+  // test_rsa_2();
+  // test_rsa_3();
 
   test_rsa1024();
 
